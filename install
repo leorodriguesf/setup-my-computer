@@ -2,18 +2,14 @@
 
 set -e
 
-current_branch=$(git branch --show-current)
+CONFIG="install.conf.yaml"
+DOTBOT_DIR="dotbot"
 
-trap 'echo "Installation failed!"; git checkout $current_branch' ERR
+DOTBOT_BIN="bin/dotbot"
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-branches=$(git branch -r | grep -v 'HEAD\|main\|master' | sed 's|^[[:space:]]*origin/||')
+cd "${BASEDIR}"
+git -C "${DOTBOT_DIR}" submodule sync --quiet --recursive
+git submodule update --init --recursive "${DOTBOT_DIR}"
 
-selected_branch=$(echo "$branches" | gum choose --header="Which computer configuration do you want to install?")
-
-if [[ -n "$selected_branch" ]]; then
-    echo "Installing $selected_branch configurations"
-    git checkout $selected_branch
-    ./install
-    echo "Finish $selected_branch installation"
-    git checkout $current_branch
-fi
+"${BASEDIR}/${DOTBOT_DIR}/${DOTBOT_BIN}" -d "${BASEDIR}" -c "${CONFIG}" "${@}"
